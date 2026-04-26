@@ -8,6 +8,16 @@ Automated UK water quality compliance monitoring system. Pulls daily measurement
 
 **Status:** In development — target ship date May–June 2026.
 
+## How to work with me
+
+- I am a Python beginner with a biology domain background. This is a learning project — explain decisions, don't just execute them.
+- For non-trivial logic, show me the code or workflow change and explain why before I accept it.
+- Keep solutions simple over clever. I should be able to explain every line of code or every node in an interview.
+- Push back if I ask for something that adds complexity I won't be able to maintain or defend.
+- Don't introduce new dependencies, libraries, or services without asking first.
+- When I'm building something manually (e.g., wiring up an n8n workflow node by node), let me do it. Offer to review afterwards rather than building it for me.
+- If I make a mistake, point it out and explain why it's wrong — don't just silently fix it.
+
 ## Stack
 
 - **n8n** — workflow orchestration (triggers, routing, API calls)
