@@ -1,0 +1,6 @@
+station_id,station_name,river,town,measure_id,typical_low_m,typical_high_m,max_on_record_m,warning_level_m,critical_level_m,unit,source
+2200TH,Reading,River Thames,Reading,2200TH-level-stage-i-15_min-mASD,6.579,7.0,7.54,7.0,7.3,m,EA flood-monitoring API stageScale
+3400TH,Kingston,River Thames,Kingston,3400-level-stage-i-15_min-mASD,3.55,3.97,6.1,3.97,4.2,m,EA flood-monitoring + check-for-flooding
+5380TH,Walthamstow Low Hall,River Lee,Walthamstow,5380TH-level-stage-i-15_min-mASD,0.01,1.35,2.20,1.35,1.50,m,EA flood-monitoring
+3404TH,Sunbury Lock,River Thames,Sunbury,3404TH-level-stage-i-15_min-m,0.04,0.17,0.63,0.17,0.30,m,EA flood-monitoring + check-for-flooding
+4150TH,Merton,River Wandle,London,4150TH-level-stage-i-15_min-m,0.12,0.38,1.48,0.38,0.60,m,EA flood-monitoring
