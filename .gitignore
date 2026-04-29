@@ -134,3 +134,33 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+# n8n local data and credentials
+.n8n/
+~/.n8n/
+n8n-data/
+*.n8n.json
+*credentials*.json
+*credentials*.txt
+
+# Local secrets (never commit!)
+.env
+.env.local
+.env.*.local
+secrets.txt
+
+# Telegram tokens
+telegram-token.txt
+bot-token.txt
+
+# OAuth tokens
+*oauth*token*
+*.oauth.json
+
+# Workflow exports with credentials (just in case)
+*.workflow-with-credentials.json
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashess
