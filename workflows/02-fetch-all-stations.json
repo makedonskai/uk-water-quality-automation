@@ -1,0 +1,448 @@
+{
+  "name": "02-fetch-all-stations",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-800, -32],
+      "id": "be3f45f8-bbf1-44c3-995c-1abb4dfef457",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { station_id: \"2200TH\", measure_id: \"2200TH-level-stage-i-15_min-mASD\", name: \"Reading\", warning: 7.0, critical: 7.3 },\n  { station_id: \"3400TH\", measure_id: \"3400TH-level-stage-i-15_min-mASD\", name: \"Kingston\", warning: 3.97, critical: 4.2 },\n  { station_id: \"5380TH\", measure_id: \"5380TH-level-stage-i-15_min-mASD\", name: \"Walthamstow Low Hall\", warning: 1.35, critical: 1.50 },\n  { station_id: \"3404TH\", measure_id: \"3404TH-level-stage-i-15_min-mAOD\", name: \"Sunbury Lock\", warning: 0.17, critical: 0.30 },\n  { station_id: \"4150TH\", measure_id: \"4150TH-level-stage-i-15_min-mASD\", name: \"Merton\", warning: 0.38, critical: 0.60 }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-672, -32],
+      "id": "5f9aaf11-fa23-4a63-8d5c-66b999b29733",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://environment.data.gov.uk/flood-monitoring/id/measures/{{ $json.measure_id }}/readings?_limit=5&_sorted",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-544, -32],
+      "id": "35cf20d5-fa86-4a06-a73b-2a2a3f8dc010",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2fbc9f1-4909-44ea-a1f5-5e03b3443df1",
+              "name": "=current_level",
+              "value": "={{ $json.items[0].value }}",
+              "type": "number"
+            },
+            {
+              "id": "f77533e4-ec50-4598-b1fc-878d6dad71f1",
+              "name": "station_id",
+              "value": "= {{ $('Code in JavaScript').item.json.station_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b7227ff5-ed08-4915-8586-d9a2cd1c6454",
+              "name": "station_name",
+              "value": "={{ $('Code in JavaScript').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "a0ff4394-8d70-4449-8bc9-f3335f2a4ff5",
+              "name": "warning",
+              "value": "={{ $('Code in JavaScript').item.json.warning }}",
+              "type": "number"
+            },
+            {
+              "id": "4d492372-b161-462a-932b-db176651de60",
+              "name": "critical",
+              "value": "={{ $('Code in JavaScript').item.json.critical }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-416, -32],
+      "id": "96c9d51d-9de1-43fe-a137-8dd36a9ce6ba",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.current_level }}",
+                    "rightValue": "={{ $json.critical }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "id": "2f36b781-463e-458f-b00c-0ba4384126b9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c98a94fd-01ce-4539-8d42-ebeed7194edb",
+                    "leftValue": "={{ $json.current_level }}",
+                    "rightValue": "={{ $json.warning }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "77452200-d17f-4e88-94d6-63186d3a7052",
+                    "leftValue": "={{ $json.current_level }}",
+                    "rightValue": "={{ $json.warning }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [-304, 64],
+      "id": "dc57070b-d325-474b-be29-3104398838b7",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "uk-water-monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "All_readings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "station_id",
+              "displayName": "station_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "station_name",
+              "displayName": "station_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "current_level",
+              "displayName": "current_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "warning_level",
+              "displayName": "warning_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical_level",
+              "displayName": "critical_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reading_time",
+              "displayName": "reading_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "@context",
+              "displayName": "@context",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "meta",
+              "displayName": "meta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "items",
+              "displayName": "items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warning",
+              "displayName": "warning",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [-112, -208],
+      "id": "cc63783b-54fb-493c-92d4-10b79907e798",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3mqJXAHrAc3L385p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🚨 EMERGENCY: Critical Flood Alert!\nStation: {{ $('Code in JavaScript').item.json.name }} \nLevel: {{ $json.current_level }} (Limit: {{ $json.critical }})\nImmediate action is required!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [-112, -48],
+      "id": "dbea3184-c5c8-40df-b7ea-432990957f56",
+      "name": "Send a text message",
+      "webhookId": "b9521bbe-2d44-4cba-8d55-de381b80cc21",
+      "credentials": {
+        "telegramApi": {
+          "id": "0MtS9LXDuzpRnzd8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=⚠️ Flood Alert: Water level rising!\nStation: {{ $json.name }}\nLevel: {{ $json.current_level }} (Threshold: {{ $json.warning }})\nPlease monitor the situation.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [-96, 64],
+      "id": "b97a4ce1-9c43-4275-abcf-cf0cdb11e855",
+      "name": "Send a text message1",
+      "webhookId": "656d0ffa-4dc9-42aa-b64c-b1bf47d0c517",
+      "credentials": {
+        "telegramApi": {
+          "id": "0MtS9LXDuzpRnzd8",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "805f5b77-14d6-4c94-8678-ad413b380047",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f288af31ce806c017ae859e626ba5320daa23ce913aa164178a9de7dfbabd385"
+  },
+  "id": "Zo75KlYAsawl9PcW",
+  "tags": []
+}
