@@ -108,7 +108,7 @@ Reliability features
 HTTP retry — the HTTP Request node retries up to 3 times on failure, with exponential backoff. The UK EA API is generally reliable but occasional 5xx responses do happen.
 Per-station thresholds — each station has its own warning and critical values, configured in the Code node. No assumptions about a "global" alert level.
 Full audit trail — every reading is logged to Google Sheets regardless of status, so historical trends can be analysed even when no alerts fired.
-What's not in V1 (planned for V2)
+Deployed for V2, to look at jpg files in /docs
 Schedule trigger (currently runs only on manual trigger)
 AI-generated breach explanations via Anthropic Claude API
 Trend detection (rising vs. falling water levels)

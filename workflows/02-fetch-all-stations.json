@@ -11,7 +11,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return [\n  { station_id: \"2200TH\", measure_id: \"2200TH-level-stage-i-15_min-mASD\", name: \"Reading\", warning: 7.0, critical: 7.3 },\n  { station_id: \"3400TH\", measure_id: \"3400TH-level-stage-i-15_min-mASD\", name: \"Kingston\", warning: 3.97, critical: 4.2 },\n  { station_id: \"5380TH\", measure_id: \"5380TH-level-stage-i-15_min-mASD\", name: \"Walthamstow Low Hall\", warning: 1.35, critical: 1.50 },\n  { station_id: \"3404TH\", measure_id: \"3404TH-level-stage-i-15_min-mAOD\", name: \"Sunbury Lock\", warning: 0.17, critical: 0.30 },\n  { station_id: \"4150TH\", measure_id: \"4150TH-level-stage-i-15_min-mASD\", name: \"Merton\", warning: 0.38, critical: 0.60 }\n];"
+        "jsCode": "\nreturn [\n  { station_id: \"2200TH\", measure_id: \"2200TH-level-stage-i-15_min-mASD\", name: \"Reading\", warning: 7.0, critical: 7.3 },\n  { station_id: \"3400TH\", measure_id: \"3400TH-level-stage-i-15_min-mASD\", name: \"Kingston\", warning: 3.97, critical: 4.2 },\n  { station_id: \"5380TH\", measure_id: \"5380TH-level-stage-i-15_min-mASD\", name: \"Walthamstow Low Hall\", warning: 1.35, critical: 1.50 },\n  { station_id: \"3404TH\", measure_id: \"3404TH-level-stage-i-15_min-mAOD\", name: \"Sunbury Lock\", warning: 0.17, critical: 0.30 },\n  { station_id: \"4150TH\", measure_id: \"4150TH-level-stage-i-15_min-mASD\", name: \"Merton\", warning: 0.38, critical: 0.60 }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -69,6 +69,12 @@
               "name": "critical",
               "value": "={{ $('Code in JavaScript').item.json.critical }}",
               "type": "number"
+            },
+            {
+              "id": "907e06be-9b12-41c0-a5c7-009a5c4ce0aa",
+              "name": "timestamp",
+              "value": "={{ $json.items[0].dateTime }}",
+              "type": "string"
             }
           ]
         },
@@ -325,13 +331,13 @@
     },
     {
       "parameters": {
-        "chatId": "YOUR_TELEGRAM_CHAT_ID",
-        "text": "=🚨 EMERGENCY: Critical Flood Alert!\nStation: {{ $('Code in JavaScript').item.json.name }} \nLevel: {{ $json.current_level }} (Limit: {{ $json.critical }})\nImmediate action is required!",
+        "chatId": "ТВІЙ_ЧАТ_ID",
+        "text": "={{ $json.content[0].text }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [-112, -48],
+      "position": [96, -48],
       "id": "dbea3184-c5c8-40df-b7ea-432990957f56",
       "name": "Send a text message",
       "webhookId": "b9521bbe-2d44-4cba-8d55-de381b80cc21",
@@ -344,13 +350,13 @@
     },
     {
       "parameters": {
-        "chatId": "YOUR_TELEGRAM_CHAT_ID",
-        "text": "=⚠️ Flood Alert: Water level rising!\nStation: {{ $json.name }}\nLevel: {{ $json.current_level }} (Threshold: {{ $json.warning }})\nPlease monitor the situation.",
+        "chatId": "ТВІЙ_ЧАТ_ID",
+        "text": "={{ $json.content[0].text }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [-96, 64],
+      "position": [160, 128],
       "id": "b97a4ce1-9c43-4275-abcf-cf0cdb11e855",
       "name": "Send a text message1",
       "webhookId": "656d0ffa-4dc9-42aa-b64c-b1bf47d0c517",
@@ -360,20 +366,103 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=\n{\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are an emergency flood alert system. Generate a clear, urgent Telegram alert message for this water level breach.\\n\\nStation: {{ $json.station_name }}\\nCurrent level: {{ $json.current_level }}m\\nCritical threshold: {{ $json.critical }}m\\n\\nReturn ONLY the alert message text (no explanations). Use English. Be concise (3-4 sentences). Include: what happened, possible risk, recommended action.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-112, -64],
+      "id": "61b638c0-39d0-4ccd-9822-6c307b9a766a",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Kzwpqd1TDM2DHCDc",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a flood warning system. Generate a cautionary Telegram alert message because the water level has reached the warning threshold (but not yet breached the critical limit).\\n\\nStation: {{ $json.station_name }}\\nCurrent level: {{ $json.current_level }}\\nWarning threshold: {{ $json.warning }}\\n\\nReturn ONLY the alert message text (no explanations). Use English. Be professional and informative. Include: a notification that the warning level is reached, potential risks of further rising, and a suggestion to stay tuned for updates.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [-64, 80],
+      "id": "ef844582-2de2-4cfd-afc2-654ac355ec9f",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Kzwpqd1TDM2DHCDc",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            },
+            {
+              "triggerAtHour": 16
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [-800, 160],
+      "id": "e475c58d-709a-4117-8c07-c4027fe3a6b6",
+      "name": "Schedule Trigger"
     }
   ],
   "pinData": {},
   "connections": {
     "When clicking ‘Execute workflow’": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[]]
     },
     "Code in JavaScript": {
       "main": [
@@ -417,11 +506,33 @@
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "HTTP Request1",
             "type": "main",
             "index": 0
           }
         ],
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
         [
           {
             "node": "Send a text message1",
@@ -430,15 +541,26 @@
           }
         ]
       ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "805f5b77-14d6-4c94-8678-ad413b380047",
+  "versionId": "29aaca09-ffdd-4533-803d-fdd7d9bac976",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f288af31ce806c017ae859e626ba5320daa23ce913aa164178a9de7dfbabd385"
