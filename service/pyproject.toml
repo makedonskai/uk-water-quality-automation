@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "httpx>=0.28.1",
+    "pydantic>=2.13.3",
     "tenacity>=9.1.4",
 ]

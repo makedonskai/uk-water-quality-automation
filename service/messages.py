@@ -1,42 +1,62 @@
 """
 Formats Telegram alert messages for breach events.
-Replaces the message-formatting logic in your n8n Telegram nodes.
 """
-from datetime import datetime
+from datetime import datetime, timezone
+# Імпортуємо моделі для кращої типізації
+from models import EvaluationResult
 
+def format_alert(result: EvaluationResult) -> str:
+    """
+    Build a human-readable Telegram message from an EvaluationResult object.
+    """
+    icon = "🚨" if result.status == "critical" else "⚠️"
+    label = "CRITICAL" if result.status == "critical" else "WARNING"
+    
+    # Визначаємо поріг для розрахунку (це логіка, яку ми передали в повідомлення)
+    # Примітка: у самій моделі EvaluationResult ми не зберігаємо поріг, 
+    # тому в ідеалі його краще передати або додати в модель. 
+    # Але для простоти використаємо поточні дані.
+    
+    # Форматуємо час для Telegram (наприклад: 14:30 01.05.2026)
+    time_str = result.reading_time.strftime("%H:%M %d.%m.%Y") if result.reading_time else "N/A"
+    
+    msg_lines = [
+        f"{icon} {label}: {result.station_name}",
+        f"Level: {result.current_level:.2f}m",
+        f"Time: {time_str}",
+        f"Status: {result.message if result.message else 'Threshold breached'}",
+        f"\nGenerated: {datetime.now(timezone.utc).strftime('%H:%M:%S')} UTC"
+    ]
+    
+    return "\n".join(msg_lines)
 
-def format_alert(
+# Залишаємо стару версію для сумісності, якщо ти ще не готова міняти виклик у main.py
+def format_alert_raw(
     station_name: str,
     river: str,
     current_level: float,
     threshold: float,
     status: str,
-    reading_time: str,
+    reading_time: datetime, # Тепер це datetime!
 ) -> str:
-    """Build a human-readable Telegram message for a breach."""
-    
     icon = "🚨" if status == "critical" else "⚠️"
-    label = "CRITICAL" if status == "critical" else "WARNING"
-    
     over_by = current_level - threshold
-    over_pct = (over_by / threshold) * 100
     
     return (
-        f"{icon} {label}: {station_name} ({river})\n"
+        f"{icon} {status.upper()}: {station_name} ({river})\n"
         f"Level: {current_level:.2f}m (threshold {threshold:.2f}m)\n"
-        f"Exceeded by {over_by:.2f}m ({over_pct:.1f}%)\n"
-        f"Reading time: {reading_time}\n"
-        f"Generated: {datetime.utcnow().isoformat()}Z"
+        f"Over by: {over_by:.2f}m\n"
+        f"Time: {reading_time.strftime('%Y-%m-%d %H:%M')}"
     )
-
 
 if __name__ == "__main__":
-    msg = format_alert(
+    # Тест нової логіки
+    test_result = EvaluationResult(
+        station_id="123",
         station_name="Kingston",
-        river="Thames",
         current_level=4.35,
-        threshold=4.2,
+        reading_time=datetime.now(),
         status="critical",
-        reading_time="2026-05-01T14:30:00Z",
+        message="Water level is dangerously high!"
     )
-    print(msg)
+    print(format_alert(test_result))

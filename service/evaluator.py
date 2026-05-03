@@ -1,9 +1,12 @@
 """
 Evaluates a water level reading against a station's thresholds.
-Replaces the 'Switch' node logic from n8n.
 """
+from typing import Literal
 
-def evaluate_reading(current_level: float, warning: float, critical: float) -> str:
+# Визначаємо тип для статусів, щоб уникнути оддруковок
+StatusType = Literal["normal", "warning", "critical", "error"]
+
+def evaluate_reading(current_level: float, warning: float, critical: float) -> StatusType:
     """
     Return the breach status for a reading.
     
@@ -20,16 +23,17 @@ def evaluate_reading(current_level: float, warning: float, critical: float) -> s
 
 
 if __name__ == "__main__":
-    # Quick sanity check — same data we'd test in pytest later
+    # Тести залишаються такими ж крутими, як і були
     test_cases = [
         (7.5, 7.0, 7.3, "critical"),
         (7.1, 7.0, 7.3, "warning"),
         (6.5, 7.0, 7.3, "normal"),
-        (7.3, 7.0, 7.3, "critical"),  # boundary: exactly at critical
-        (7.0, 7.0, 7.3, "warning"),   # boundary: exactly at warning
+        (7.3, 7.0, 7.3, "critical"), 
+        (7.0, 7.0, 7.3, "warning"),   
     ]
     
+    print("Running evaluator tests...")
     for current, warning, critical, expected in test_cases:
         result = evaluate_reading(current, warning, critical)
-        status = "✓" if result == expected else "✗"
-        print(f"{status} level={current} w={warning} c={critical} → {result} (expected {expected})")
+        mark = "✅" if result == expected else "❌"
+        print(f"{mark} Level: {current} (W: {warning}, C: {critical}) -> {result}")
