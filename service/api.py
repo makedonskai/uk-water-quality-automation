@@ -7,6 +7,11 @@ from main import check_all_stations
 from ea_client import fetch_station_reading
 from stations import STATIONS, get_station_by_id
 from models import EvaluationResult, StationReading
+from sqlalchemy import select
+from db import Reading, SessionLocal
+
+
+
 
 app = FastAPI(
     title="UK Water Quality Automation API",
@@ -14,11 +19,6 @@ app = FastAPI(
     version="0.1.0",
 )
 
-
-@app.get("/health")
-def health() -> dict:
-    """Liveness check."""
-    return {"status": "ok", "stations_configured": len(STATIONS)}
 
 
 @app.get("/stations", response_model=list)
@@ -46,3 +46,23 @@ def check_all():
     This is the main endpoint n8n will call to replace its HTTP node logic.
     """
     return check_all_stations()
+@app.get("/readings/{station_id}")
+def get_readings(station_id: str, limit: int = 20):
+    """Return the most recent readings for a station."""
+    with SessionLocal() as session:
+        stmt = (
+            select(Reading)
+            .where(Reading.station_id == station_id)
+            .order_by(Reading.created_at.desc())
+            .limit(limit)
+        )
+        readings = session.scalars(stmt).all()
+        return [
+            {
+                "station_id": r.station_id,
+                "current_level": r.current_level,
+                "reading_time": r.reading_time.isoformat(),
+                "status": r.status,
+            }
+            for r in readings
+        ]

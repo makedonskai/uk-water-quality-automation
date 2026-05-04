@@ -5,6 +5,7 @@ from messages import format_alert
 from ea_client import fetch_station_reading
 # Імпортуємо модель для результату
 from models import EvaluationResult
+from db import save_reading
 
 def check_all_stations() -> list[EvaluationResult]:
     """Fetch and evaluate readings for all configured stations."""
@@ -19,7 +20,13 @@ def check_all_stations() -> list[EvaluationResult]:
                 warning=station.warning,
                 critical=station.critical,
             )
-            
+            save_reading(
+                station_id=station.id,
+                station_name=station.name,
+                current_level=reading.current_level,
+                reading_time=reading.reading_time,
+                status=status
+            )
             message = None
             
                # 1. Створюємо об'єкт (повідомлення 'message' поки що порожнє за замовчуванням)

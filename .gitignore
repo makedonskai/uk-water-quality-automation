@@ -166,3 +166,6 @@ bot-token.txt
 .Trashess
 # Python Virtual Environment
 .venv/
+service/water.db
+service/__pycache__/
+service/.venv/
