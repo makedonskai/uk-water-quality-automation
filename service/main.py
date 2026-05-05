@@ -6,6 +6,10 @@ from ea_client import fetch_station_reading
 # Імпортуємо модель для результату
 from models import EvaluationResult
 from db import save_reading
+import logging
+from config import settings
+from logging_config import setup_logging
+logger = logging.getLogger(__name__)
 
 def check_all_stations() -> list[EvaluationResult]:
     """Fetch and evaluate readings for all configured stations."""
@@ -42,15 +46,23 @@ def check_all_stations() -> list[EvaluationResult]:
             if status in ("warning", "critical"):
             # Функція бере дані прямо з result і повертає рядок
                 result.message = format_alert(result)
+                logger.warning("Flood alert triggered", extra={
+                    "station_id": station.id,
+                    "status": status,
+                    "level": reading.current_level
+                })
         
         # 3. Додаємо вже повністю готовий об'єкт у список
             results.append(result) 
+            logger.info("station processed", extra={
+                "station_id": station.id, 
+                "status": status
+            })
 
             
 
         except Exception as e:
-            print(f"⚠ Failed to fetch {station.id}: {e}")
-            # Навіть помилку загортаємо в модель
+            logger.exception("failed to process station", extra={"station_id": station.id})
             results.append(EvaluationResult(
                 station_id=station.id,
                 station_name=station.name,
@@ -64,12 +76,23 @@ def check_all_stations() -> list[EvaluationResult]:
 
 
 if __name__ == "__main__":
+    setup_logging(settings.log_level)
+
+    logger.info("starting flood check orchestration")
     results = check_all_stations()
-    
-    print(f"\nProcessed {len(results)} stations\n")
+
+    logger.info("orchestration complete", extra={"processed_count": len(results)})
+   
     for r in results:
         # Тепер тут теж працює автодоповнення через крапку!
         if r.status == "error":
-            print(f"❌ {r.station_id} ({r.station_name}): {r.error}")
+            logger.error("station check error", extra={
+                "station_id": r.station_id, 
+                "error": r.error
+            })
         else:
-            print(f"{r.status.upper():9s} {r.station_id} ({r.station_name}): {r.current_level}m")
+            logger.info("result summary", extra={
+                "status": r.status,
+                "station": r.station_id,
+                "level": r.current_level
+            })

@@ -5,10 +5,13 @@ SQLite for now; swap to Postgres in Week 3 (one config line will change).
 from datetime import datetime
 from sqlalchemy import create_engine, String, Float, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+from config import settings
+from logging_config import setup_logging
+import logging
+logger = logging.getLogger(__name__)
 
-DATABASE_URL = "sqlite:///./water.db"
 
-engine = create_engine(DATABASE_URL, echo=False)
+engine = create_engine(settings.database_url, echo=(settings.log_level == "DEBUG"))
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
@@ -52,8 +55,14 @@ def save_reading(
         )
         session.add(reading)
         session.commit()
+        logger.info("database record saved", extra={
+                "station_id": station_id,
+                "status": status,
+                "level": current_level
+            })
 
 
 if __name__ == "__main__":
+    setup_logging(settings.log_level)
     init_db()
-    print("Database initialised at water.db")
+    logger.info("Database initialised", extra={"db_url": settings.database_url})

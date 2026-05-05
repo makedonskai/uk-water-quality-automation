@@ -9,6 +9,11 @@ from stations import STATIONS, get_station_by_id
 from models import EvaluationResult, StationReading
 from sqlalchemy import select
 from db import Reading, SessionLocal
+import logging
+from config import settings
+from logging_config import setup_logging
+setup_logging(settings.log_level)
+logger = logging.getLogger(__name__)
 
 
 
