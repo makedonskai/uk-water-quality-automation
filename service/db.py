@@ -2,12 +2,16 @@
 Database layer using SQLAlchemy + SQLite.
 SQLite for now; swap to Postgres in Week 3 (one config line will change).
 """
+
+import logging
 from datetime import datetime
-from sqlalchemy import create_engine, String, Float, DateTime
+
+from sqlalchemy import DateTime, Float, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+
 from config import settings
 from logging_config import setup_logging
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,8 +25,9 @@ class Base(DeclarativeBase):
 
 class Reading(Base):
     """One historical reading, persisted for audit + analysis."""
+
     __tablename__ = "readings"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     station_id: Mapped[str] = mapped_column(String(20), index=True)
     station_name: Mapped[str] = mapped_column(String(100))
@@ -55,11 +60,10 @@ def save_reading(
         )
         session.add(reading)
         session.commit()
-        logger.info("database record saved", extra={
-                "station_id": station_id,
-                "status": status,
-                "level": current_level
-            })
+        logger.info(
+            "database record saved",
+            extra={"station_id": station_id, "status": status, "level": current_level},
+        )
 
 
 if __name__ == "__main__":

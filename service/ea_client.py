@@ -1,12 +1,20 @@
 """
 Client for the UK Environment Agency Flood Monitoring API.
 """
+
 import logging
+
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from models import StationReading
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
+
 from config import settings
 from logging_config import setup_logging
+from models import StationReading
 
 logger = logging.getLogger(__name__)
 
@@ -20,28 +28,28 @@ logger = logging.getLogger(__name__)
 def fetch_station_reading(station_id: str) -> StationReading:
     """
     Fetch the latest water-level reading for a station.
-    
+
     Returns a StationReading object.
     Raises httpx.HTTPError on network or API failure.
     """
     url = f"{settings.ea_api_base_url}/id/stations/{station_id}/measures"
-    
+
     response = httpx.get(url, timeout=settings.ea_api_timeout_seconds)
-    response.raise_for_status() 
-    
+    response.raise_for_status()
+
     data = response.json()
     measures = data.get("items", [])
-    
+
     level_measure = None
     for m in measures:
         if m.get("parameter") == "level" and m.get("qualifier") == "Stage":
             level_measure = m
             break
-    
+
     if level_measure is None:
         logger.warning("measure not found", extra={"station_id": station_id})
         raise ValueError(f"No 'level/Stage' measure found for station {station_id}")
-    
+
     latest = level_measure.get("latestReading")
     if latest is None:
         raise ValueError(f"No latest reading for station {station_id}")
@@ -51,14 +59,16 @@ def fetch_station_reading(station_id: str) -> StationReading:
         reading_time=latest["dateTime"],
         unit=level_measure.get("unitName", "mASD"),
     )
-    logger.info("fetched reading", extra={
-        "station_id": station_id, 
-        "level": reading.current_level,
-        "unit": reading.unit
-    })
+    logger.info(
+        "fetched reading",
+        extra={
+            "station_id": station_id,
+            "level": reading.current_level,
+            "unit": reading.unit,
+        },
+    )
     return reading
-    
-   
+
 
 if __name__ == "__main__":
     setup_logging(settings.log_level)
@@ -66,5 +76,5 @@ if __name__ == "__main__":
     try:
         reading = fetch_station_reading("2200TH")
         logger.info("Test successful", extra={"reading": str(reading)})
-    except Exception as e:
+    except Exception:
         logger.exception("Test failed")

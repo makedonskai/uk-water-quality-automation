@@ -1,7 +1,8 @@
 """JSON-structured logging. Production-ready out of the box."""
+
+import json
 import logging
 import sys
-import json
 from datetime import datetime
 
 
@@ -17,11 +18,30 @@ class JsonFormatter(logging.Formatter):
             log["exception"] = self.formatException(record.exc_info)
         # Include any extra fields passed via logger.info("...", extra={"station_id": "X"})
         for key, value in record.__dict__.items():
-            if key not in ("args", "msg", "levelname", "name", "exc_info", "exc_text",
-                          "pathname", "filename", "module", "lineno", "funcName",
-                          "created", "msecs", "relativeCreated", "thread", "threadName",
-                          "processName", "process", "stack_info", "levelno", "message",
-                          "taskName"):
+            if key not in (
+                "args",
+                "msg",
+                "levelname",
+                "name",
+                "exc_info",
+                "exc_text",
+                "pathname",
+                "filename",
+                "module",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "stack_info",
+                "levelno",
+                "message",
+                "taskName",
+            ):
                 log[key] = value
         return json.dumps(log)
 
