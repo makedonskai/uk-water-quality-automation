@@ -119,6 +119,9 @@ Security notes
 No credentials are stored in this repository. All API keys, OAuth tokens, and bot tokens live only inside n8n's local encrypted database (~/.n8n/database.sqlite).
 Workflow exports include only credential references (IDs), not the credentials themselves. Importing this workflow on a different machine requires re-authenticating with your own accounts.
 The .gitignore blocks any accidental commits of .env, OAuth tokens, or n8n local data files.
+Demo FastAPI
+![FastAPI Swagger UI](docs/assets/fastapi_swagger.png)
+
 Data licensing
 Water level data is provided by the UK Environment Agency under the Open Government Licence v3.0. This project is non-commercial and demonstrative.
 

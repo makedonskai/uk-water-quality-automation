@@ -164,3 +164,8 @@ bot-token.txt
 ._*
 .Spotlight-V100
 .Trashess
+# Python Virtual Environment
+.venv/
+service/water.db
+service/__pycache__/
+service/.venv/
