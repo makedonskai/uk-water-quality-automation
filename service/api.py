@@ -42,7 +42,7 @@ def get_reading(station_id: str):
     try:
         return fetch_station_reading(station_id)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"EA API error: {e}")
+        raise HTTPException(status_code=502, detail=f"EA API error: {e}") from e
 
 
 @app.post("/check", response_model=list[EvaluationResult])

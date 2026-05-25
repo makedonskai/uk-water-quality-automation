@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 def check_all_stations() -> list[EvaluationResult]:
     """Fetch and evaluate readings for all configured stations."""
     results: list[EvaluationResult] = []
-
     for station in STATIONS:
         try:
             reading = fetch_station_reading(station.id)
@@ -36,7 +35,6 @@ def check_all_stations() -> list[EvaluationResult]:
                 reading_time=reading.reading_time,
                 status=status,
             )
-            message = None
 
             # 1. Створюємо об'єкт (повідомлення 'message' поки що порожнє за замовчуванням)
             result = EvaluationResult(

@@ -121,6 +121,7 @@ Workflow exports include only credential references (IDs), not the credentials t
 The .gitignore blocks any accidental commits of .env, OAuth tokens, or n8n local data files.
 Demo FastAPI
 ![FastAPI Swagger UI](docs/assets/fastapi_swagger.png)
+Test coverage: 62% (run pytest --cov=.).
 
 Data licensing
 Water level data is provided by the UK Environment Agency under the Open Government Licence v3.0. This project is non-commercial and demonstrative.
