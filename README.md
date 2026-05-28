@@ -1,4 +1,5 @@
-UK Water Quality Automation
+# UK Water Quality Automation ![CI](https://github.com/makedonskai/uk-water-quality-automation/actions/workflows/ci.yml/badge.svg) ![Python](https://img.shields.io/badge/python-3.12-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+
 An automated water level monitoring system for UK rivers, built with n8n. Tracks 5 stations on the Thames and Lee rivers in real time, logs all readings to Google Sheets, and sends instant Telegram alerts when water levels exceed warning or critical thresholds.
 
 What it does
