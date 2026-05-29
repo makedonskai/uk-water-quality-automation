@@ -51,6 +51,27 @@ Station ID Name River Warning Critical
 Threshold values are stored in data/reference/thresholds.csv and were derived from the EA API's stageScale (typical range high) and the public flood warning service.
 
 How to run this yourself
+
+## Running the integrated stack (V2)
+
+The system requires both the Python service and n8n to be running.
+
+### Terminal 1 — Python service
+
+\`\`\`bash
+cd service
+uv run fastapi dev api.py
+\`\`\`
+The service starts on http://localhost:8000.
+Open http://localhost:8000/docs for the interactive API.
+
+### Terminal 2 — n8n
+
+\`\`\`bash
+n8n start
+\`\`\`
+Then open http://localhost:5678 and execute the workflow.
+The HTTP Request node calls http://localhost:8000/check.
 Prerequisites
 macOS, Linux, or Windows
 Node.js 20 LTS or newer
