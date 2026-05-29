@@ -2,7 +2,13 @@
 Defines the 5 UK water monitoring stations and their thresholds.
 """
 
+import logging
+
+from config import settings
+from logging_config import setup_logging
 from models import StationConfig
+
+logger = logging.getLogger(__name__)
 
 STATIONS: list[StationConfig] = [
     StationConfig(id="2200TH", name="Reading", river="Thames", warning=7.0, critical=7.3),
@@ -30,7 +36,10 @@ def get_station_by_id(station_id: str) -> StationConfig | None:
 
 
 if __name__ == "__main__":
-    print(f"Loaded {len(STATIONS)} stations")
+    setup_logging(settings.log_level)
+    logger.info("stations loaded", extra={"count": len(STATIONS)})
     for s in STATIONS:
-        # ВИПРАВЛЕНО: Всюди доступ через крапку
-        print(f"  {s.id}: {s.name} ({s.river}) — warning={s.warning}m")
+        logger.info(
+            "station config",
+            extra={"id": s.id, "name": s.name, "river": s.river, "warning_m": s.warning},
+        )

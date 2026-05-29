@@ -2,7 +2,13 @@
 Evaluates a water level reading against a station's thresholds.
 """
 
+import logging
 from typing import Literal
+
+from config import settings
+from logging_config import setup_logging
+
+logger = logging.getLogger(__name__)
 
 # Визначаємо тип для статусів, щоб уникнути оддруковок
 StatusType = Literal["normal", "warning", "critical", "error"]
@@ -25,6 +31,7 @@ def evaluate_reading(current_level: float, warning: float, critical: float) -> S
 
 
 if __name__ == "__main__":
+    setup_logging(settings.log_level)
     # Тести залишаються такими ж крутими, як і були
     test_cases = [
         (7.5, 7.0, 7.3, "critical"),
@@ -34,8 +41,18 @@ if __name__ == "__main__":
         (7.0, 7.0, 7.3, "warning"),
     ]
 
-    print("Running evaluator tests...")
+    logger.info("Running evaluator tests")
     for current, warning, critical, expected in test_cases:
         result = evaluate_reading(current, warning, critical)
-        mark = "✅" if result == expected else "❌"
-        print(f"{mark} Level: {current} (W: {warning}, C: {critical}) -> {result}")
+        passed = result == expected
+        logger.info(
+            "test case",
+            extra={
+                "level": current,
+                "warning_threshold": warning,
+                "critical_threshold": critical,
+                "result": result,
+                "expected": expected,
+                "passed": passed,
+            },
+        )
