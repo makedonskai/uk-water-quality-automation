@@ -4,7 +4,7 @@ SQLite for now; swap to Postgres in Week 3 (one config line will change).
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Float, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
@@ -34,7 +34,7 @@ class Reading(Base):
     current_level: Mapped[float] = mapped_column(Float)
     reading_time: Mapped[datetime] = mapped_column(DateTime)
     status: Mapped[str] = mapped_column(String(20))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 def init_db() -> None:

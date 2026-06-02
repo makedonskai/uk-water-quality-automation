@@ -1,6 +1,4 @@
-"""
-Client for the UK Environment Agency Flood Monitoring API.
-"""
+"""Client for the UK Environment Agency Flood Monitoring API."""
 
 import logging
 
@@ -19,23 +17,37 @@ from models import StationReading
 logger = logging.getLogger(__name__)
 
 
+class EAApiError(Exception):
+    """Raised when the EA API returns an unexpected response."""
+
+    pass
+
+
 @retry(
     stop=stop_after_attempt(settings.ea_api_max_retries),
     wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=retry_if_exception_type(httpx.HTTPError),
+    retry=retry_if_exception_type(EAApiError),
     reraise=True,
 )
 def fetch_station_reading(station_id: str) -> StationReading:
-    """
-    Fetch the latest water-level reading for a station.
+    """Fetch the latest water-level reading for a station.
 
     Returns a StationReading object.
-    Raises httpx.HTTPError on network or API failure.
+    Raises EAApiError on network or API failure.
     """
     url = f"{settings.ea_api_base_url}/id/stations/{station_id}/measures"
 
-    response = httpx.get(url, timeout=settings.ea_api_timeout_seconds)
-    response.raise_for_status()
+    # --- ДОДАНО: Перехоплюємо помилки інтернету та перетворюємо на EAApiError ---
+    try:
+        response = httpx.get(url, timeout=settings.ea_api_timeout_seconds)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        raise EAApiError(f"EA API returned {e.response.status_code} for {station_id}") from e
+    except httpx.TimeoutException as e:
+        raise EAApiError(
+            f"EA API timeout for {station_id} after {settings.ea_api_timeout_seconds}s"
+        ) from e
+    # ---------------------------------------------------------------------------
 
     data = response.json()
     measures = data.get("items", [])
@@ -53,12 +65,14 @@ def fetch_station_reading(station_id: str) -> StationReading:
     latest = level_measure.get("latestReading")
     if latest is None:
         raise ValueError(f"No latest reading for station {station_id}")
+
     reading = StationReading(
         station_id=station_id,
         current_level=float(latest["value"]),
         reading_time=latest["dateTime"],
         unit=level_measure.get("unitName", "mASD"),
     )
+
     logger.info(
         "fetched reading",
         extra={
@@ -76,5 +90,13 @@ if __name__ == "__main__":
     try:
         reading = fetch_station_reading("2200TH")
         logger.info("Test successful", extra={"reading": str(reading)})
+    except EAApiError as e:
+        # Якщо впав саме британський сайт — ми чітко це побачимо
+        logger.error(
+            "Test failed due to EA API issue",
+            extra={"error": str(e)},
+            exc_info=True,
+        )
     except Exception:
-        logger.exception("Test failed")
+        # Якщо сталося щось інше (наприклад, помилка в самому коді Python)
+        logger.exception("Test failed due to unexpected internal error")

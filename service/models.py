@@ -39,6 +39,8 @@ class EvaluationResult(BaseModel):
     station_id: str
     station_name: str
     current_level: float
+    warning_level: float  # ← must be here
+    critical_level: float  # ← must be here
     reading_time: datetime | None = None
     status: Literal["normal", "warning", "critical", "error"]
     message: str | None = None

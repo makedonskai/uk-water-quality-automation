@@ -4,7 +4,7 @@ import logging
 
 from config import settings
 from db import save_reading
-from ea_client import fetch_station_reading
+from ea_client import EAApiError, fetch_station_reading
 from evaluator import evaluate_reading
 from logging_config import setup_logging
 from messages import format_alert
@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 def check_all_stations() -> list[EvaluationResult]:
     """Fetch and evaluate readings for all configured stations."""
     results: list[EvaluationResult] = []
-
     for station in STATIONS:
         try:
             reading = fetch_station_reading(station.id)
@@ -36,7 +35,6 @@ def check_all_stations() -> list[EvaluationResult]:
                 reading_time=reading.reading_time,
                 status=status,
             )
-            message = None
 
             # 1. Створюємо об'єкт (повідомлення 'message' поки що порожнє за замовчуванням)
             result = EvaluationResult(
@@ -45,6 +43,8 @@ def check_all_stations() -> list[EvaluationResult]:
                 current_level=reading.current_level,
                 reading_time=reading.reading_time,
                 status=status,
+                warning_level=station.warning,
+                critical_level=station.critical,
             )
 
             # 2. Якщо статус тривожний — "вкладаємо" в об'єкт текст повідомлення
@@ -64,13 +64,23 @@ def check_all_stations() -> list[EvaluationResult]:
             results.append(result)
             logger.info("station processed", extra={"station_id": station.id, "status": status})
 
-        except Exception as e:
-            logger.exception("failed to process station", extra={"station_id": station.id})
+        except EAApiError as e:  # замість загального Exception ловимо нашу чітку помилку
+            logger.error(
+                "ea_api_failure",
+                extra={"station_id": station.id, "error": str(e)},
+                exc_info=True,
+            )
+        except ValueError as e:
+            logger.warning(
+                "No latest reading for station", extra={"station_id": station.id, "error": str(e)}
+            )
             results.append(
                 EvaluationResult(
                     station_id=station.id,
                     station_name=station.name,
                     current_level=0.0,
+                    warning_level=station.warning,
+                    critical_level=station.critical,
                     reading_time=None,  # Можна зробити поле Optional в моделі
                     status="error",
                     error=str(e),

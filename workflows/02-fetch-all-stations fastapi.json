@@ -1,0 +1,605 @@
+{
+  "name": "02-fetch-all-stations",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        -256
+      ],
+      "id": "be3f45f8-bbf1-44c3-995c-1abb4dfef457",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flatten the Python service response into n8n items.\nconst response = $input.first().json;\nconst results = response.results || [];\n\n// Each result becomes one n8n item.\nreturn results.map(r => ({ json: r }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        -160
+      ],
+      "id": "5f9aaf11-fa23-4a63-8d5c-66b999b29733",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2fbc9f1-4909-44ea-a1f5-5e03b3443df1",
+              "name": "=current_level",
+              "value": "={{ $json.current_level}}",
+              "type": "number"
+            },
+            {
+              "id": "f77533e4-ec50-4598-b1fc-878d6dad71f1",
+              "name": "station_id",
+              "value": "= {{ $json.station_id }}",
+              "type": "string"
+            },
+            {
+              "id": "b7227ff5-ed08-4915-8586-d9a2cd1c6454",
+              "name": "station_name",
+              "value": "={{ $json.station_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a0ff4394-8d70-4449-8bc9-f3335f2a4ff5",
+              "name": "warning",
+              "value": "={{ $json.status==\"warning\"? 1:0 }}",
+              "type": "number"
+            },
+            {
+              "id": "4d492372-b161-462a-932b-db176651de60",
+              "name": "critical",
+              "value": "={{ $json.status==\"critical\"? 1:0 }}",
+              "type": "number"
+            },
+            {
+              "id": "907e06be-9b12-41c0-a5c7-009a5c4ce0aa",
+              "name": "timestamp",
+              "value": "={{ $json.reading_time}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -576,
+        80
+      ],
+      "id": "96c9d51d-9de1-43fe-a137-8dd36a9ce6ba",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2f36b781-463e-458f-b00c-0ba4384126b9"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "77452200-d17f-4e88-94d6-63186d3a7052",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "=warning",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        96
+      ],
+      "id": "dc57070b-d325-474b-be29-3104398838b7",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1TYODXcfKY3TueAaFazL6rnihTdLOWWoEOJCUAnteasA",
+          "mode": "list",
+          "cachedResultName": "uk-water-monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TYODXcfKY3TueAaFazL6rnihTdLOWWoEOJCUAnteasA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "All_readings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TYODXcfKY3TueAaFazL6rnihTdLOWWoEOJCUAnteasA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "station_id",
+              "displayName": "station_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "station_name",
+              "displayName": "station_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "current_level",
+              "displayName": "current_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "warning_level",
+              "displayName": "warning_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical_level",
+              "displayName": "critical_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reading_time",
+              "displayName": "reading_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "@context",
+              "displayName": "@context",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "meta",
+              "displayName": "meta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "items",
+              "displayName": "items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "warning",
+              "displayName": "warning",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -224,
+        -208
+      ],
+      "id": "cc63783b-54fb-493c-92d4-10b79907e798",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "3mqJXAHrAc3L385p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1320083520",
+        "text": "={{ $json.content[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        -96
+      ],
+      "id": "dbea3184-c5c8-40df-b7ea-432990957f56",
+      "name": "Send a text message",
+      "webhookId": "b9521bbe-2d44-4cba-8d55-de381b80cc21",
+      "credentials": {
+        "telegramApi": {
+          "id": "0MtS9LXDuzpRnzd8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1320083520",
+        "text": "={{ $json.content[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        144
+      ],
+      "id": "b97a4ce1-9c43-4275-abcf-cf0cdb11e855",
+      "name": "Send a text message1",
+      "webhookId": "656d0ffa-4dc9-42aa-b64c-b1bf47d0c517",
+      "credentials": {
+        "telegramApi": {
+          "id": "0MtS9LXDuzpRnzd8",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=\n{\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are an emergency flood alert system. Generate a clear, urgent Telegram alert message for this water level breach.\\n\\nStation: {{ $json.station_name }}\\nCurrent level: {{ $json.current_level }}m\\nCritical threshold: {{ $json.critical }}m\\n\\nReturn ONLY the alert message text (no explanations). Use English. Be concise (3-4 sentences). Include: what happened, possible risk, recommended action.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -64,
+        -80
+      ],
+      "id": "61b638c0-39d0-4ccd-9822-6c307b9a766a",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Kzwpqd1TDM2DHCDc",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5\",\n  \"max_tokens\": 500,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a flood warning system. Generate a cautionary Telegram alert message because the water level has reached the warning threshold (but not yet breached the critical limit).\\n\\nStation: {{ $json.station_name }}\\nCurrent level: {{ $json.current_level }}\\nWarning threshold: {{ $json.warning }}\\n\\nReturn ONLY the alert message text (no explanations). Use English. Be professional and informative. Include: a notification that the warning level is reached, potential risks of further rising, and a suggestion to stay tuned for updates.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -48,
+        80
+      ],
+      "id": "ef844582-2de2-4cfd-afc2-654ac355ec9f",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Kzwpqd1TDM2DHCDc",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            },
+            {
+              "triggerAtHour": 16
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -800,
+        160
+      ],
+      "id": "e475c58d-709a-4117-8c07-c4027fe3a6b6",
+      "name": "Schedule Trigger",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/check",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -848,
+        -48
+      ],
+      "id": "a6ddb4ca-92ec-4ba1-bc23-db068d77adb6",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e140b3cb-81cd-4765-8fd6-b093d6de9228",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f288af31ce806c017ae859e626ba5320daa23ce913aa164178a9de7dfbabd385"
+  },
+  "id": "Zo75KlYAsawl9PcW",
+  "tags": []
+}

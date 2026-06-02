@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     ea_api_max_retries: int = 3
     database_url: str = "sqlite:///./water.db"
     log_level: str = "INFO"
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-sonnet-4-5"
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
 
 
 settings = Settings()
