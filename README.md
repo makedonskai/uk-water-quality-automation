@@ -18,13 +18,13 @@ thresholds are breached.
 
 ## See it working
 
-| Telegram alert                                   | Live API docs                                |
-| ------------------------------------------------ | -------------------------------------------- |
-| ![alert](docs/screenshots/01-telegram-alert.png) | ![api](docs/screenshots/03-fastapi-docs.png) |
+| Telegram alert                                                                                              | Live API docs                                                                        |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ![alert](docs/screenshots/011-Telegram-warning_alert.png)(docs/screenshots/010-Telegram-critical_alert.png) | ![api](docs/screenshots/030-fastAPI-docs.png)(docs/screenshots/031-fastAPI-docs.png) |
 
-| Sheets audit log                                    | Structured JSON logs                             |
-| --------------------------------------------------- | ------------------------------------------------ |
-| ![sheets](docs/screenshots/02-sheets-dashboard.png) | ![logs](docs/screenshots/05-structured-logs.png) |
+| Sheets audit log                                     | Structured JSON logs                             |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| ![sheets](docs/screenshots/02-sheets-dashboardf.png) | ![logs](docs/screenshots/05-structured-logs.png) |
 
 🎥 **[120-second video walkthrough](https://www.loom.com/share/c82fa25e7887481781d2179b13c344cb)**
 
