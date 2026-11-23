@@ -169,3 +169,6 @@ bot-token.txt
 service/water.db
 service/__pycache__/
 service/.venv/
+__pycache__/
+.pytest_cache/
+runs.txt
