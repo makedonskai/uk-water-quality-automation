@@ -1,0 +1,5 @@
+# Dependencies for agent/ only (service/ is managed separately with uv).
+# Install into the root .venv:  .venv/bin/pip install -r agent/requirements.txt
+anthropic>=2.12,<3
+python-dotenv>=1.2,<2
+pytest>=9.2,<10

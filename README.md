@@ -138,6 +138,16 @@ API docs at http://localhost:8000/docs
 
 ---
 
+## AI agent (learning prototype)
+
+`agent/` contains a small Claude tool-use agent for a duty operator. It
+finds a station, reports its latest water level with a status computed in
+Python, and can raise an alert after human confirmation and a duplicate
+check. It currently runs on deterministic fake data. See
+[`agent/README.md`](agent/README.md).
+
+---
+
 ## Data licensing
 
 Water-level data is provided by the UK Environment Agency under the
