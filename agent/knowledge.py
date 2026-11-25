@@ -14,7 +14,7 @@ Based on domain/knowledge.py from olgaitlt/qa-knowledge-agent.
 import math
 import re
 
-from config import FASTEMBED_CACHE_DIR, KB_DIR, RAG_THRESHOLD
+from config import FASTEMBED_CACHE_DIR, KB_DIR, RAG_THRESHOLD, RAG_TOP_K
 
 _MODEL_NAME = "intfloat/multilingual-e5-small"
 
@@ -149,10 +149,31 @@ def scores(query: str, k: int = 5) -> list[tuple[float, str, str]]:
     return scored[:k]
 
 
-def as_context(query: str, k: int = 3) -> str:
-    """Text block to paste into the model prompt, or "" if nothing passes the threshold."""
-    hits = vector_retrieve(query, k)
+def _format(hits: list[tuple[float, str, str, str]]) -> str:
+    """Turn retrieved chunks into one text block, or "" if there are none."""
     if not hits:
         return ""  # fail-closed: better empty than a wrong fragment
     lines = [f"[Source: {file} — {section}]\n{text}" for _, file, section, text in hits]
     return "\n\nKnowledge base excerpts:\n" + "\n---\n".join(lines)
+
+
+def as_context(query: str, k: int = 3) -> str:
+    """Text block to paste into the model prompt, or "" if nothing passes the threshold."""
+    return _format(vector_retrieve(query, k))
+
+
+def build_context(query: str) -> tuple[str, list[tuple[float, str, str]]]:
+    """Retrieve once and return (prompt text, hits) for the agent.
+
+    text: excerpts wrapped in <knowledge_base> tags, ready to append to the
+          system prompt; "" if no section passed RAG_THRESHOLD.
+    hits: (score, file, section) for each section used, for printing.
+    """
+    found = vector_retrieve(query, RAG_TOP_K)  # threshold is applied inside
+    if not found:
+        return "", []
+    # The tags show the model where reference text starts and ends,
+    # so it can treat it as data, not as instructions.
+    text = f"\n\n<knowledge_base>{_format(found)}\n</knowledge_base>"
+    hits = [(score, file, section) for score, file, section, _ in found]
+    return text, hits

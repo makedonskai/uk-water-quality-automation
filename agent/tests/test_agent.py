@@ -281,6 +281,13 @@ def test_budget_guard_stops_before_first_call(monkeypatch):
     assert fake.calls == []
 
 
+def test_run_agent_passes_system_to_client(monkeypatch):
+    """run.py adds RAG excerpts via `system`; it must reach the API call."""
+    fake = use_fake(monkeypatch, [text_resp("ok")])
+    run_agent("Kingston?", system="CUSTOM PROMPT")
+    assert fake.calls[0]["system"] == "CUSTOM PROMPT"
+
+
 def test_no_tool_used_flag(monkeypatch):
     """The model answered without tools: no_tool_used flag is set."""
     use_fake(monkeypatch, [text_resp("Рівень у нормі, мабуть.")])
