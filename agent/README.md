@@ -207,6 +207,129 @@ The check runs before the first paid call, so nothing was spent.
 Cost: a full chain with an alert costs about $0.0075 on Haiku; a simple question about $0.0016.
 
 Red team
+...
+
+Knowledge base retrieval (M2): lexical vs vector
+
+Before connecting the knowledge base to the agent, retrieval was tested on its own: 44 pre-written questions (agent/QUESTIONS.md) run through two search methods by agent/compare.py. No Claude model and no API calls are involved, so the test is free and repeatable. Full results: agent/compare_results.md.
+
+Knowledge base: 3 documents, 28 chunks (one ## section = one chunk): GOV.UK flood alerts and warnings, EA flood-monitoring API (operator-relevant sections), operator runbook.
+Lexical search: counts shared words between question and chunk.
+Vector search: intfloat/multilingual-e5-small via fastembed (ONNX, no PyTorch), cosine similarity, threshold 0.78.
+Summary
+Group	Questions	Vector top-1 correct	Lexical top-1 correct
+A. Direct (same words)	5	5 / 5	2 / 5
+B. Paraphrase (different words)	11	5 / 11 (9 / 11 in top-3)	1 / 11
+C. Ukrainian question, English document	4	4 / 4	0 / 4
+D. Answer not in the documents	7	threshold rejected 0 / 7	—
+
+"Correct" means the expected section from QUESTIONS.md.
+
+Insight 1. Vector search finds meaning when the words differ
+
+B6. Can I build a life-or-death alarm on this data?
+
+	Result
+Lexical	Introduction (8 points: shared words like "data") ❌
+Vector	Availability and resilience (0.829) ✅
+
+The document says the API "should not be relied upon for safety critical applications". The question says "life-or-death alarm". No words in common, same meaning.
+
+B4. Is it likely to be a disaster with people trapped?
+
+	Result
+Lexical	Flood alert: meaning and timeframe (12) ❌
+Vector	Severe flood warning: what may happen (0.826) ✅
+
+The document lists "communities unable to escape". The question says "people trapped".
+
+A1. Even with the same words, lexical search picks the general section, vector search the precise one:
+
+	Result
+Lexical	Types of flood warning in England (14) ⚠️
+Vector	Flood alert: meaning and timeframe (0.916) ✅
+Insight 2. Lexical search cannot cross languages; vector search can
+
+C2. Що робити, якщо оголосили flood alert?
+
+	Result
+Lexical	Flood warnings (8) ❌
+Vector	Flood alert: what you should do (0.858) ✅
+
+C1. Що означає попередження про повінь?
+
+	Result
+Lexical	0 points: no shared words, "top-1" is just the first file alphabetically ❌
+Vector	Flood warning: meaning and timeframe (0.792) ✅
+
+Lexical search has no threshold: it always returns something, even with 0 points. A score of 0 means "nothing found".
+
+Insight 3. The similarity threshold does not separate "found" from "not found"
+
+This is the main finding. Scores for correct answers and for questions with no answer overlap:
+
+Correct chunk (should pass)	Score	No answer in KB (should be rejected)	Top score
+B1 Severe flood warning: what you should do	0.778 ✗	D7 How many flood warnings are active right now?	0.869
+B5 Flood alert: meaning and timeframe	0.776 ✗	D1 When will the water go down at Kingston?	0.814
+I1 Status stale: the reading is too old	0.759 ✗	D5 Who is the head of the Environment Agency?	0.813
+C1 Flood warning: meaning and timeframe	0.792	D3 How much compensation do flood victims get?	0.804
+
+All 7 "no answer" questions scored above 0.78 and would pass the threshold, while several correct chunks fell below it. Almost every score sits in a narrow band, 0.76–0.92: the model gives a high baseline similarity to any text on the same topic.
+
+Decision: no single number can do this job. The threshold stays only as a floor against clearly unrelated text (planned: ~0.75), and honesty moves to the agent's instructions: answer only from the provided excerpts; if they do not contain the answer, say so. Retrieval finds candidates, the model judges them.
+
+Insight 4. Ukrainian questions score lower
+Language	Typical top-1 score
+English (group A)	0.88–0.92
+Ukrainian (groups B, C, I)	0.76–0.80
+
+C2 scores higher (0.858) because it contains the English term "flood alert". The small multilingual model links languages, but more weakly. Three of the retrieval failures below are Ukrainian questions.
+
+Insight 5. Retrieval failures
+#	Question	What happened
+B1	Вода вже заходить у будинки, треба тікати?	Top-1 Availability and resilience (0.801). The correct Severe flood warning: what you should do is 3rd with 0.778, just below the threshold
+B2	The river is about to burst its banks, how long do I have?	The section with "30 minutes to 2 hours" is not in the top-3
+B10	Чому не можна порівнювати рівні на різних станціях?	Measures (the only section that explains datums) is not in the top-3
+B11	Kingston shows 4.05 m and Merton 0.72 m — is Kingston's river much higher?	Measures is 3rd, 0.764, below the threshold
+I1	Датчик давно мовчить, що робити?	Status stale is 3rd, 0.759, below the threshold
+Insight 6. "Magnet" chunks
+
+Two general sections come out on top for many unrelated questions:
+
+operator-runbook.md — What this system monitors: top-1 for D1, D2, D4, E3, G3, H2, B7, B11;
+ea-flood-data-for-operators.md — Availability and resilience: in the top-3 for most questions.
+
+They mix several topics, so they are a little similar to everything. For some questions this helps: for D1 (when will the water go down?), D4 (is Thames water safe to drink?) and G3 (will it flood tomorrow?) the magnet chunk says the system "does not forecast" and "does not assess water quality", which is exactly the basis for an honest refusal.
+
+Insight 7. The stale / unknown confusion appears in retrieval too
+
+F3. Walthamstow data is old — what does that mean?
+
+Rank	Section	Score
+1	Status unknown: the value is missing ❌	0.829
+2	Status stale: the reading is too old ✅	0.817
+
+"Old data" is stale, but unknown ranks higher. The same confusion was found in the agent's answers in M1 (red team #4). Both sections are passed to the agent, so the agent must pick the right one.
+
+Next steps
+Connect retrieval to the agent (static RAG: excerpts added to the system prompt) with a --no-rag switch for comparison.
+Lower the threshold to ~0.75 and add the honesty rule to the system prompt; re-run groups D and E with the model.
+Experiment: translate the question to English before vector search, and check whether B1, B10 and I1 improve.
+Experiment: split What this system monitors into smaller sections.
+
+| File                    | Purpose                                                      |
+| ----------------------- | ------------------------------------------------------------ |
+| `agent.py`              | Agent loop (reason → act → observe), budget and turn guards  |
+| `backend.py`            | Stations, fake data source, `evaluate()`, tools, `dispatch`  |
+| `config.py`             | Model, limits, `FAKE_NOW`, `STALE_AFTER_MIN`, KB path, RAG threshold, system prompt |
+| `run.py`                | Command-line entry point                                     |
+| `knowledge.py`          | Knowledge base: chunking, lexical and vector search          |
+| `compare.py`            | Lexical vs vector comparison on `QUESTIONS.md`               |
+| `knowledge_base/`       | GOV.UK and EA documents, operator runbook                    |
+| `QUESTIONS.md`          | 44 retrieval test questions                                  |
+| `compare_results.md`    | Output of `compare.py`                                       |
+| `tests/test_agent.py`   | Offline tests for backend rules and the agent loop           |
+| `requirements.txt`      | `anthropic`, `python-dotenv`, `pytest`, `fastembed`          |
 
 Attempts to make the agent misbehave, and what happened.
 
@@ -239,3 +362,5 @@ Fix open red-team items 3–6 (tool and prompt wording).
 Credits
 
 Agent loop based on the AI Agent PRO course template, adapted to the Claude API. Backend, tools, status rules, alert safeguards and tests are specific to this project.
+This uses Environment Agency flood and river level data from the real-time data API (Beta).
+Knowledge base documents are from GOV.UK and the Environment Agency, used under the Open Government Licence.

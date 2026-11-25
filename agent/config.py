@@ -32,6 +32,14 @@ FAKE_NOW = datetime(2026, 11, 22, 9, 0, tzinfo=timezone.utc)
 # send_alert writes one JSON file per alert here (Telegram comes later).
 ALERTS_DIR = AGENT_DIR / "out" / "alerts"
 
+# RAG: folder with .md documents, split into chunks by "## " headings.
+KB_DIR = AGENT_DIR / "knowledge_base"
+# Vector similarity below this means "nothing relevant found" (fail-closed).
+RAG_THRESHOLD = 0.78
+# Where fastembed keeps the downloaded model (~120 MB). A permanent folder,
+# so the model is not lost when the system clears its temp directory.
+FASTEMBED_CACHE_DIR = pathlib.Path.home() / ".cache" / "fastembed"
+
 SYSTEM_PROMPT = (
     "You are an assistant for the duty operator who monitors river WATER "
     "LEVELS at UK Environment Agency stations. Reply briefly, in the user's "
