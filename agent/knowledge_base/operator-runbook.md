@@ -4,13 +4,21 @@ Status: draft for review
 
 # Duty operator runbook: river level statuses
 
-## What this system monitors
+## Which stations this system monitors
 
-This system monitors river water levels at five Environment Agency stations: Reading, Kingston and Sunbury Lock on the River Thames, Merton on the River Wandle, and Walthamstow Low Hall on the River Lee. It only measures water level in metres. It does not measure water quality, rainfall or flow. It does not forecast whether levels will rise or fall. Each reading is compared with two thresholds for that station: a warning threshold and a critical threshold.
+This system monitors river water levels at five Environment Agency stations: Reading, Kingston and Sunbury Lock on the River Thames, Merton on the River Wandle, and Walthamstow Low Hall on the River Lee. It only measures water level in metres. Each reading is compared with two thresholds for that station: a warning threshold and a critical threshold.
+
+## What this system does not do
+
+It does not measure water quality, rainfall or flow. It does not forecast whether levels will rise or fall.
 
 ## Where the thresholds come from
 
 The warning and critical thresholds for each station are stored in data/reference/thresholds.csv. They were taken from the Environment Agency station scale data and from the flood warning service, not invented by this system. Thresholds are different for every station, because each station measures from its own reference point. Operators must not change thresholds during a shift. If a threshold looks wrong, report it to the project owner.
+
+## Why levels at different stations cannot be compared
+
+A water level is measured from a reference point called a datum. The unitName of a level measure shows which datum is used: mAOD (for metres relative to the Ordnance Survey datum) or mASD (for metres relative to the local stage datum). A local stage datum is the station's own zero point. So a level in mASD at one station cannot be compared with a level in mASD at another station, because they are measured from different zero points. To judge a level, compare it only with the warning and critical thresholds of the same station.
 
 ## Our statuses are not official flood warnings
 
@@ -43,3 +51,17 @@ An alert can only be sent for a fresh warning or critical reading. The system re
 ## When to escalate
 
 Escalate to the team lead when a station is critical, when the same station stays in warning for several readings in a row, or when two or more stations are stale or unknown at the same time. Escalate also if a threshold looks wrong. In any situation where people may be in danger, the correct response is 999 and the official Environment Agency guidance, not this system.
+
+## Emergency and official contacts
+
+- call 999 if you are in immediate danger
+
+You can contact Floodline for advice:
+
+Floodline
+Telephone: 0345 988 1188
+Textphone: 0345 602 6340
+24-hour service
+
+You can:
+- sign up for flood warnings by phone, text or email

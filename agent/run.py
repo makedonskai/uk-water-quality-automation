@@ -11,11 +11,23 @@ import argparse
 import json
 
 from agent import reset_usage, run_agent
-from config import BUDGET_USD, MAX_TURNS, MODEL, SYSTEM_PROMPT
+from config import BASE_PROMPT, BUDGET_USD, MAX_TURNS, MODEL, RAG_RULES
 from knowledge import build_context
 
 DEFAULT_QUERY = ("Яка зараз ситуація на станції Kingston? "
                  "Якщо рівень вище порогу, надішли сповіщення.")
+
+
+def build_system(use_rag: bool, kb_text: str = "") -> str:
+    """System prompt for one run.
+
+    Without RAG: only BASE_PROMPT (the M1 baseline).
+    With RAG: BASE_PROMPT + RAG_RULES + excerpts. RAG_RULES are added even
+    when kb_text is empty, so the model knows how to say "not covered".
+    """
+    if not use_rag:
+        return BASE_PROMPT
+    return BASE_PROMPT + RAG_RULES + kb_text
 
 
 def main():
@@ -31,7 +43,7 @@ def main():
 
     # Static RAG: search the knowledge base once, before the agent starts,
     # and append the found sections to the system prompt.
-    system = SYSTEM_PROMPT
+    kb_text, hits = "", []
     if args.no_rag:
         print("RAG: off")
     else:
@@ -42,7 +54,7 @@ def main():
                 print(f"  {score:.3f} {file} — {section}")
         else:
             print("RAG: no sections above threshold")
-        system = SYSTEM_PROMPT + kb_text
+    system = build_system(not args.no_rag, kb_text)
     print("─" * 70)
 
     reset_usage()
@@ -57,8 +69,12 @@ def main():
 
     print("─" * 70)
     print(f"Answer: {result['answer']}")
-    print(f"\noutcome: {result['outcome']}"
-          + (" · no_tool_used!" if result.get("no_tool_used") else ""))
+    # No tools used is fine if the answer came from KB sections (red team #4);
+    # warn only when there were neither tools nor sections.
+    note = ""
+    if result.get("no_tool_used"):
+        note = " · answered from KB" if hits else " · no_tool_used!"
+    print(f"\noutcome: {result['outcome']}{note}")
     if result["failures"]:
         print(f"tool failures: {result['failures']}")
     u = result["usage"]
